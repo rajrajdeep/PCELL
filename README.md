@@ -1053,15 +1053,15 @@ load("./pcell.il")
 
 <img title="Pcell nmos" src="images/nmos_pcell.png" width="500" length="500"> 
 
-Same as above code we can create NMOS.
+Same as above code we can create NMOS. <br/>
 Below is the modification in NMOS, instead of one contact we are trying array of contacts.
 
 # Modifications in a NMOS pcell
 
 Here we are trying to create a standard xfab NMOS with array of diffusion contacts and align them one by one.
-We can use different-defferent methods to create array of contacts, Out of which two methods I have mentioned below
-	(1). By using rodCreatePath and subRect
-	(2). By using for loop
+We can use different-defferent methods to create array of contacts, Out of which two methods I have mentioned below <br/>
+	(1). By using rodCreatePath and subRect <br/>
+	(2). By using loops
 
 
 ## (1). By using rodCreatePath and subRect
@@ -1336,6 +1336,205 @@ load("./cdf.il")
 load("./pcell.il")  
 
 <img title="Pcell std_nmos" src="images/std_nmos.png" width="400" length="500"> 
+
+
+## (1). By using loops
+## nmos_constructor.il
+Rest all the files are same as above nmos.
+
+```
+procedure( nmosForLoop(cv w l)
+	let( (diffu diffu1 diffu2 poly metalSource metalDrain)
+	
+	;;;;;;; OD Layers named as diffu, diffu1 and diffu2 ;;;;;;;
+
+		diffu = rodCreateRect(
+			?name "diff"
+			?cvId cv
+			?layer "OD"
+			?bBox list(0:0 l:w)
+		);diffu
+
+	;;;;;;;  Here diffu1 = source_OD and diffu2 = drain_OD ;;;;;;;
+
+		diffu1 = rodCreateRect(
+			?name "diff1"
+			?cvId cv
+			?layer "OD"
+			?bBox list(0:0 0.458*l:w)
+		);diffu1
+
+		diffu2 = rodCreateRect(
+			?name "diff2"
+			?cvId cv
+			?layer "OD"
+			?bBox list(0:0 0.458*l:w)
+		);diffu2
+
+	;;;;;;; POLY layer ;;;;;;;
+
+		poly = rodCreateRect(
+			?name "poly"
+			?cvId cv
+			?layer "PO"
+			?bBox list(0:0 0.625*l:w*1.5625)
+		);poly
+
+	;;;;;;; Aligned the poly and OD ref_obj = diffu and align_obj = poly ;;;;;;;
+
+		rodAlign(
+			?alignObj diffu
+			?alignHandle "centerCenter"
+			?refObj poly
+			?refHandle "centerCenter"
+		);rodAlign
+
+	;;;;;;; Aligned the diffu and diffu1 ;;;;;;;
+
+		rodAlign(
+			?alignObj diffu
+			?alignHandle "centerLeft"
+			?refObj diffu1
+			?refHandle "centerRight"
+		);rodAlign
+
+	;;;;;;;; Aligned the diffu and diffu2 ;;;;;;;
+
+		rodAlign(
+			?alignObj diffu
+			?alignHandle "centerRight"
+			?refObj diffu2
+			?refHandle "centerLeft"
+		);rodAlign
+
+	;;;;;;; Created one metal layer and named as source ;;;;;;;
+
+		metalSource = rodCreateRect(
+			?name "M_Source"
+			?cvId cv
+			?layer "M1"
+			?bBox list(0:0 l*0.208:w)
+		);metalSource
+
+	;;;;;;; Created one metal layer and named as drain ;;;;;;;
+
+		metalDrain = rodCreateRect(
+			?name "M_Drain"
+			?cvId cv
+			?layer "M1"
+			?bBox list(0:0 l*0.208:w)
+		);metalDrain
+
+	;;;;;;;; aligned both the source and drain metals with reference to the diffu1(source_od) and diffu2(drain_od) ;;;;;;;
+
+		rodAlign(
+			?alignObj metalSource
+			?alignHandle "centerCenter"
+			?refObj diffu1
+			?refHandle "centerCenter"
+		);rodAlign
+
+		rodAlign(
+			?alignObj metalDrain
+			?alignHandle "centerCenter"
+			?refObj diffu2
+			?refHandle "centerCenter"
+		);rodAlign
+
+	dist = 0
+	i = 0
+	while(dist < (w - 0.1)
+		dist = dist + 0.03 + 0.07
+		i = i+1
+     	)
+
+	;;;;;;; Created contacts for drain ;;;;;;;
+
+		arrayOfDiffCon0  = rodCreateRect( ?cvId cv
+				  ?name "arrayOfDiffCon0" 
+				  ?layer "CO" 
+				  ?width 0.04
+				  ?length 0.04
+            			  ?elementsX 1 
+                                  ?elementsY i 
+				  ?spaceY 0.00 );arrayOfDiffCon0
+
+	;;;;;;; Created contacts for source ;;;;;;;
+
+
+		arrayOfDiffCon1  = rodCreateRect( ?cvId cv
+				  ?name "arrayOfDiffCon1" 
+				  ?layer "CO" 
+				  ?width 0.04
+				  ?length 0.04
+            			  ?elementsX 1 
+                                  ?elementsY i 
+				  ?spaceY 0.00 );arrayOfDiffCon1
+				  
+	;;;;;;;; Loop for array of contacts ;;;;;;;;;	
+	
+	for(j 1 i
+		contName0 = sprintf(nil "arrayOfDiffCon0.%d" j)
+		rodAlign(
+         		?alignObj rodGetObj(contName0 cv)
+         		?alignHandle "lowerCenter"
+         		?refObj metalDrain
+         		?refHandle "lowerCenter"
+         		?xSep 0.0
+         		?ySep (0.03 + 0.1*(j - 1))
+        	) ;rodAlign
+      
+      		contName1 = sprintf(nil "arrayOfDiffCon1.%d" j)
+      		rodAlign(
+         		?alignObj rodGetObj(contName1 cv)
+         		?alignHandle "lowerCenter"
+         		?refObj metalSource
+         		?refHandle "lowerCenter"
+         		?xSep 0.0
+         		?ySep (0.03 + 0.1*(j-1))
+      		) ;rodAlign
+   	);for
+		
+
+
+	;;;;;;; Created NP and aligned it with reference to the POLY ;;;;;;;
+
+		np = rodCreateRect(
+			?name "np"
+			?cvId cv
+			?layer "NP"
+			?bBox list(0:0 2.708*l:w*2.031)
+		);np
+
+
+		rodAlign(
+			?alignObj np
+			?alignHandle "centerCenter"
+			?refObj poly
+			?refHandle "centerCenter"
+		);rodAlign
+
+		;;;;;;; Created OD_18 and aligned it with reference to the POLY ;;;;;;;
+
+		od18 = rodCreateRect(
+			?name "OD_18"
+			?cvId cv
+			?layer "OD_18"
+			?bBox list(0:0 3.416*l:2.125*w)
+		);od18
+
+
+		rodAlign(
+			?alignObj od18
+			?alignHandle "centerCenter"
+			?refObj poly
+			?refHandle "centerCenter"
+		);rodAlign
+	);let
+);procedure
+
+```
+
 
 # Create layers
 
