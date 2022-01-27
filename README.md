@@ -1535,73 +1535,146 @@ procedure( nmosForLoop(cv w l)
 
 ```
 
+# Adding fingers and multipliers to the NMOS
+	Here I have used rodcreatePath technique to develop the nmos layout <br/>
+	In previous methods we were using the ROD concept to develop the nmos layout <br/>
+	But by using rodcreatePath we can easily generate the nmos layout as shown in below code.
 
-# Create layers
-
-##  lab8_constructor.il
+## nmos.constructor.il
 ```
-procedure( CCScreatePcell8(cv w l sep botLay)
-   let( (metNum midLay topLay)
+procedure( createNmos(cv w l f m)
+	for(a 1 m	; for loop for multiplier
+	k = 0		
+	for(k 1 f	; for loop for finger
+	m = k * 0.42
+		rodCreatePath(
+			?cvId	cv
+			?layer	"OD"	;Master Layer
+			?justification	"center"
+			?width	l
+			?pts	list((0 + m):0+a (0 + m):w+a)
+			?subRect	;subRectangle of Contact
+			list(
+				list(
+					?layer	"CO"
+					?justification	"left"	;Drain Side
+					?width	0.04
+					?length	0.04
+					?space	0.07
+					?sep	0.07
+					?beginOffset	-0.03
+					?endOffset	-0.03 				
+				);list1.1
+				list(
+					?layer	"CO"
+					?justification	"right"	;Source Side
+					?width	0.04
+					?length	0.04
+					?space	0.07
+					?sep	0.07
+					?beginOffset	-0.03
+					?endOffset	-0.03 
+				);list1.2
+			);list1
+			
+	 	;;;;;;;;;; OffsetPath ;;;;;;;;;;
 
-      pcreMatchp("MET(\\d)" botLay)
-      metNum=atoi(pcreSubstitute("\\1"))
-      midLay=sprintf(nil "MET%d" metNum+1)
-      topLay=sprintf(nil "MET%d" metNum+2)
+			?offsetSubPath
+			list(
+				list(
+					?layer	"PO"
+					?justification	"center"
+					?width	l
+					?beginOffset	0.08	;polyExtension
+					?endOffset	0.08	;polyExtension
+					;?netName	"G"
+					;?termName	"G"
+					;termIOType	"input"
+				);list2.1
+				list(
+					?layer	"OD"	;Active Layer OD
+					?justification "center"
+					?width	(0.04 + 0.07) * 2 + l + 0.045 * 2
+				);list2.2
+				list(
+					?layer	"M1"
+					?justification	"left"
+					?sep	0.065
+					?width	0.04 + 0.005 * 2
+					?netName	"D"
+					?termName	"D"
+					?termIOType	"inputOutput" 
+				);list2.3
+				list(
+					?layer	"M1"
+					?justification	"right"
+					?sep	0.065
+					?width	0.04 + 0.005 * 2
+					?netName	"s"
+					?termName	"s"
+					?termIOType	"inputOutput" 
+				);list2.3
+			);list2	
 
-      rodCreatePath(
-         ?cvId cv
-         ?layer midLay
-         ?width w
-         ?pts list(0:0 0:l)
-         ?offsetSubPath list(
-            list(?layer midLay ?width w ?sep sep+w)
-            list(?layer midLay ?width w ?sep 2*(sep+w))
-         ) ;list
-      ) ;rodCreatePath
- 
-      rodCreateRect(
-         ?cvId cv
-         ?layer botLay
-         ?bBox list(-2*(w+sep)-w/2.0:0 w/2.0:l)
-      ) ;rodCreateRect
+		;;;;;;;;;; Enclosure ;;;;;;;;;;
 
-      rodCreateRect(
-         ?cvId cv
-         ?layer topLay
-         ?bBox list(-2*(w+sep)-w/2.0:0 w/2.0:l)
-      ) ;rodCreateRect
-   ) ;let
-) ;procedure
+		?encSubPath
+		list(
+			list(
+				?layer	"NP"	;p+ implantation
+				?enclosure	-(0.07 + 0.04 + 0.045 + 0.065)	;Horizontal distance from masterpath(OD)	0.07 -> od to co 
+				?beginOffset	0.08 + 0.065
+				?endOffset	0.08 + 0.065
+			);list3.1
+			list(
+				?layer	"OD_18"
+				?enclosure	-(0.07 + 0.04 + 0.045 + 0.065 + 0.115)	;Horizontal distance from masterpath(OD)
+				?beginOffset	0.08 + 0.065 + 0.035	;UpperVertical distance from masterpath
+				?endOffset	0.08 + 0.065 + 0.035	;LowerVertical distance from masterpath
+			);list3.2
+			list(
+				?layer	"PDK"	;p substrate
+				?enclosure	-(0.07 + 0.04 + 0.045 + 0.065 + 0.115)	;Horizontal distance from masterpath(OD)
+				?beginOffset	0.08 + 0.065 + 0.035
+				?endOffset	0.08 + 0.065 + 0.035
+			);list3.3 
+		);list3		
+		);rodCreatePath		
+	);for loop for multiplier
+	);for loop for finger
+);procedure
+
 ```
-##  lab8_callback.il
+
+## nmos_constructor.il
 ```
-procedure( CCScheckParamValue8(param)
+procedure( checkParamNmos(param)
    let( (paramError value)
       paramError=nil
       value=cdfFindParamByName(cdfgData symbolToString(param))->value
       case( param
          (w
             cond(
-               (value<0.1
+               (value<0.2
                   paramError=t
-                  value=0.1
-               ) ;0.1
-                (value>10.0
+                  value=0.2
+               ) ;0.2
+                (value>2.0
                   paramError=t
-                  value=10.0
-               ) ;10.0
+                  value=2.0
+               ) ;2.0
             ) ;cond
          ) ;w
          (l
             cond(
-               (value<0.1
+               (value<0.18
                   paramError=t
-                  value=0.1
-               ) ;0.1
-                (value>50.0
+                  value=0.18
+               ) ;0.18
+                (value>0.8
                   paramError=t
-                  value=50.0
-               ) ;50.0
+                  value=0.8
+               ) ;0.8
             ) ;cond
          ) ;l
       ) ;case
@@ -1609,19 +1682,21 @@ procedure( CCScheckParamValue8(param)
       cdfFindParamByName(cdfgData symbolToString(param))->value=value
       when(paramError
          case( param
-            (w error("Value of w must be within the range [0.1u,10.0u]"))
-            (l error("Value of l must be within the range [0.1u,50.0u]"))
+            (w error("Value of w must be within the range [0.2u,2.0u]"))
+            (l error("Value of l must be within the range [0.18u,0.5u]"))
          ) ;case
       ) ;when
    ) ;let
 ) ;procedure
+
 ```
 
-##  lab8_cdf.il
+## nmos_cdf.il
+
 ```
 let( ( lib cell view libId cellId cdfId )
-   lib="TestSkill"
-   cell="pcell8"
+   lib="pcell"
+   cell="nmosPath"
    view="layout"
 
    unless( ddGetObj(lib cell view)
@@ -1635,98 +1710,65 @@ let( ( lib cell view libId cellId cdfId )
    cdfCreateParam( cdfId
        ?name           "l"
        ?prompt         "l"
-       ?defValue       10.0
+       ?defValue       0.24
        ?type           "float"
-       ?callback       "CCScheckParamValue8('l)"
+       ?callback       "checkParamNmos('l)"
    ) ;cdfCreateParam
 
    cdfCreateParam( cdfId
        ?name           "w"
        ?prompt         "w"
-       ?defValue       1.0
+       ?defValue       0.32
        ?type           "float"
-       ?callback       "CCScheckParamValue8('w)"
+       ?callback       "checkParamNmos('w)"
    ) ;cdfCreateParam
 
    cdfCreateParam( cdfId
-       ?name           "sep"
-       ?prompt         "Spacing"
-       ?defValue       1.0
-       ?type           "float"
+       ?name           "f"
+       ?prompt         "f"
+       ?defValue       1
+       ?type           "int"
+       ?callback       "checkParamNmos('f)"
    ) ;cdfCreateParam
-
    cdfCreateParam( cdfId
-       ?name           "botLay"
-       ?prompt         "Bottom Layer"
-       ?defValue       "MET1"
-       ?type           "cyclic"
-       ?choices        '("MET1" "MET2" "MET3")
+       ?name           "m"
+       ?prompt         "m"
+       ?defValue       1
+       ?type           "int"
+       ?callback       "checkParamNmos('m)"
    ) ;cdfCreateParam
 
     cdfSaveCDF( cdfId )
 ) ;let
+
 ```
-##  lab8.il
+
+## nmos.il
+
 ```
-lib="TestSkill"
-cell="pcell8"
+lib="pcell"
+cell="nmosPath"
 cdf=cdfGetBaseCellCDF(ddGetObj(lib cell))
 
 pcDefinePCell(
    list(ddGetObj(lib) cell "layout")
    list(
       (w "float" cdf->w->defValue)
-      (l "float" cdf->l->defValue) 
-      (sep "float" cdf->sep->defValue)
-      (botLay "string" cdf->botLay->defValue)
+      (l "float" cdf->l->defValue)
+      (f "int" cdf->f->defValue)
+      (m "int" cdf->m->defValue)
    ) ;list
    let( (cv)
       cv=pcCellView
-      CCScreatePcell8(cv w l sep botLay)
+      createNmos(cv w l f m)
    ) ;let
 ) ;pcDefinePCell
 
 lib=nil
 cell=nil
 cdf=nil
-```
-<img title="Pcell layers" src="images/layers.png" width="300" length="300"> 
 
-##  Functions description
-
-- pcreMatchp
 ```
-pcreMatchp( 
-g_pattern 
-S_subject 
-[ x_compOptBits ] 
-[ x_execOptBits ] 
- )
-     => t / nil
-```
-
-Checks to see whether the subject string or symbol (S_subject) matches the specified regular expression pattern (g_pattern). You can use optional arguments to specify independent option bits for controlling pattern compiling and matching. The compiling and matching algorithms are PCRE/Perl-compatible. For greater efficiency when matching a number of subjects against a single pattern, you should use pcreCompile and pcreExecute.
-
-- atoi
-```
-atoi( 
-t_string [t]
- )
-     => x_result / nil
-```
-
-Converts a string into an integer. Returns nil if the given string does not denote an integer.
-
-- pcreSubstitute
-```
-pcreSubstitute( 
-[o_pcreObject]
-t_string 
- )
-     => t_result / nil
-```
-
-If o_pcreObject is not provided, pcreSubstitute copies the input string and substitutes all pattern tags in it using the corresponding matched strings from the last pcreExecute/pcreMatch* operation.
 
 # Creating a poly resistor pcell
 ## rupolym_constrctor.il
