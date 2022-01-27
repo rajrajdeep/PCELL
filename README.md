@@ -1546,7 +1546,7 @@ procedure( createNmos(cv w l f m)
 	for(a 1 m	; for loop for multiplier
 	k = 0		
 	for(k 1 f	; for loop for finger
-	m = k * 0.42
+	m = k * (0.18 + l)
 		rodCreatePath(
 			?cvId	cv
 			?layer	"OD"	;Master Layer
