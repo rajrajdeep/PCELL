@@ -49,13 +49,13 @@ Regardless of the complexity, all SKILL PCell code starts with the `pcDefinePCel
 ;   Description   : Program to create a pcell that consists of a single rectangle with two parameters ‘w’ and ‘l’.
 
 pcDefinePCell(
-   list( ddGetObj("TestSkill") "pcell1" "layout")
-   list((w 0.2) (l 0.1)) 
-   let( (cv)
-      cv=pcCellView
-      dbCreateRect(cv list("MET1" "drawing") list(0:0 w:l))
-   ) ;let
-) ;pcDefineCell
+		list(ddGetObj("pcell") "lab1" "layout")
+		list((w 0.1) (l 0.2))
+		let( (cv)
+			cv = pcCellView
+			dbCreateRect(cv, list("M1" "drawing") list(0:0 w:l))
+		);let
+);pcDefinePCell
 ```
 The above SKILL code defines a simple PCell with the following features:
 - PCell will be created in TestSkill/pcell1/layout.
@@ -63,7 +63,7 @@ The above SKILL code defines a simple PCell with the following features:
 - The Properties form of the PCell contains two parameters, w and l, which can be used to modify the size of the rectangle.
 
 ```
-list( ddGetObj("TestSkill") "pcell1" "layout")
+list( ddGetObj("pcell") "lab1" "layout")
 ```
 - This is a fixed syntax. Specify string inputs for library, cell, and view arguments. The `ddGetObj` command is only required for the library name. The "TestSkill" library should have already been pre-created in Library Manager.
 ```
@@ -79,29 +79,29 @@ cv=pcCellView
 ```
 - pcCellView is an internal variable automatically created by `pcDefinePCell`. pcCellView contains the dbId (database identification) of the cell you are creating. Assigning pcCellView to "cv" is to simply shorten the name of the variable so that it can be used more conveniently.
 ```
-dbCreateRect(cv list("MET1" "drawing") list(0:0 w:l))
+dbCreateRect(cv list("M1" "drawing") list(0:0 w:l))
 ```
 - PCell parameters `w` and `l` are used in the dbCreateRect command so that the PCell layout can be modified according to the values defined in the Properties form. bBox (bounding box) of the rectangle will be defined by the coordinates 0:0 (lowerLeft) and w:l (upperRight).
 
 The codes can be used as follows:
 - Start Virtuoso:
 ```bash
-Linux> xt18-618
-Linux> cdproj
+Linux> cd
+Linux> amp
 Linux> cadstart
 ```
 Compile the PCell by loading the SKILL script in CIW:
 ```
-load("./scripts/lab1.il")
+load("./HOME/userName/lab1.il")
 ```
 The following messages appear in CIW and the PCell myCell1 layout is generated in the myLib library.
 ```
-Generating Pcell for 'pcell1 layout'.
+Generating Pcell for 'lab1 layout'.
 t
 ```
 The newly generated PCell can be tested as follows:
 
-Click on  `CIW: File > Open > Cellview`, and open the cell named `lab` in myLib library. Place an instance of TestSkill/pcell1/layout in it. Modify w and l in the Properties form and note the changes in the PCell layout. For example, change w from 0.2 to 0.3.
+Click on  `CIW: File > Open > Cellview`, and open the cell named `lab` in myLib library. Place an instance of pcell/lab1/layout in it. Modify w and l in the Properties form and note the changes in the PCell layout. For example, change w from 0.2 to 0.3.
 
 The next step is to create CDF information for the PCell. Advantages of creating CDF include:
 - Allows more variety in the input parameters (for example, instead of just a numeric field, radio fields and cyclic fields can also be used)
@@ -114,15 +114,15 @@ Although the creation of CDF can be done using the Edit CDF form with `CIW: Tool
 A typical SKILL script for creating CDF is as shown below. It can be used as follows:
 - Load the script in CIW:
 ```
-load("./scripts/lab1_cdf.il")
+load("/HOME/userName/lab1_cdf.il")
 ```
 ## lab1_cdf.il
 ```
 ;   Description   : Program to create cdf information for the pcell.
 
 let( ( lib cell libId cellId cdfId )
-   lib="TestSkill"
-   cell="pcell1"
+   lib="pcell"
+   cell="lab1"
    unless( cellId=ddGetObj(lib cell) error("Could not get cell %s." cell))
    when( cdfId=cdfGetBaseCellCDF(cellId) cdfDeleteCDF(cdfId))
    cdfId=cdfCreateBaseCellCDF(cellId)
@@ -159,8 +159,8 @@ In the following SKILL codes, the layer of the rectangle has been parameterized 
 ;   Description   : Program to create a pcell that consists of a single rectangle with three parameters ‘w’, ‘l’ and 'layer'.
 
 pcDefinePCell(
-   list( ddGetObj("TestSkill") "pcell2" "layout")
-   list((w 0.2) (l 0.1) (layer "MET1")) 
+   list( ddGetObj("pcell") "lab22" "layout")
+   list((w 0.2) (l 0.1) (layer "M1")) 
    let( (cv)
       cv=pcCellView
       dbCreateRect(cv list(layer "drawing") list(0:0 w:l))
@@ -174,8 +174,8 @@ The corresponding CDF creation script is:
 ;   Description   : Program to create cdf information for the pcell.
 
 let( ( lib cell libId cellId cdfId )
-   lib="TestSkill"
-   cell="pcell2"
+   lib="pcell"
+   cell="lab2"
    unless( cellId=ddGetObj(lib cell) error("Could not get cell %s." cell))
    when( cdfId=cdfGetBaseCellCDF(cellId) cdfDeleteCDF(cdfId))
    cdfId=cdfCreateBaseCellCDF(cellId)
@@ -183,7 +183,7 @@ let( ( lib cell libId cellId cdfId )
    cdfCreateParam( cdfId
        ?name           "layer"
        ?prompt         "layer"
-       ?defValue       "MET1"
+       ?defValue       "M1"
        ?type           "string"
    ) ;cdfCreateParam
 
@@ -227,7 +227,7 @@ Instead of putting all the required codes within the pcDefinePCell command, it i
 
 ## lab3_constructor.il
 ```
-procedure( CCScreatePcell3(cv w l layer)
+procedure( createPcell3(cv w l layer)
    let( ()
   	dbCreateRect(cv list(layer "drawing") list(0:0 w:l))
    ) ;let
@@ -236,19 +236,19 @@ procedure( CCScreatePcell3(cv w l layer)
 ## lab3.il
 ```
 pcDefinePCell(
-    list(ddGetObj("TestSkill") "pcell3" "layout")
-    list((w 0.2) (l 0.1) (layer "MET1"))
+    list(ddGetObj("pcell") "lab3" "layout")
+    list((w 0.2) (l 0.1) (layer "M1"))
     let((cv)
      	cv=pcCellView
-     	CCScreatePcell3(cv w l layer)
-   	)
-)    
+     	createPcell3(cv w l layer)
+   	);let
+);pcDefinePCell  
 ```
 ## lab3_cdf.il
 ```
 let( ( lib cell libId cellId cdfId )
-   lib="TestSkill"
-   cell="pcell3"
+   lib="pcell"
+   cell="lab3"
 
    unless( cellId=ddGetObj(lib cell) error("Could not get cell %s." cell))
    when( cdfId=cdfGetBaseCellCDF(cellId) cdfDeleteCDF(cdfId))
@@ -257,8 +257,8 @@ let( ( lib cell libId cellId cdfId )
    cdfCreateParam( cdfId
    	?name       	"layer"
    	?prompt     	"layer"
-   	?defValue   	"MET1"
-   	?choices    	'("MET1" "MET2" "MET3")
+   	?defValue   	"M1"
+   	?choices    	'("M1" "M2" "M3")
    	?type       	"cyclic"
    ) ;cdfCreateParam
 
@@ -289,7 +289,7 @@ The file containing the constructor functions can be encrypted as a context file
 
 The new codes with constructor function can be tested by executing the following commands in CIW:
 ```
-load("./scripts/lab3_constructor.il")
+load("./scripts/lab3_const.il")
 load("./scripts/lab3_cdf.il")
 load("./scripts/lab3.il")
 ```
@@ -299,39 +299,11 @@ The file containing the constructor functions should be loaded first so that the
 
 As the codes that create the PCell are now separated from the pcDefinePCell function and hence, are not compiled directly into the PCell layout, they need to be always loaded once before the PCell can be used.
 
-# Take min DRC value from techfile
-## lab4_tech.il
-```
-lib="TestSkill"
-cell="pcell4"
-cv=dbOpenCellViewByType(lib cell "layout")
-tf=techGetTechFile(cv)
-cdf=cdfGetBaseCellCDF(ddGetObj(lib cell))
-
-pcDefinePCell( 
-   list( ddGetObj(lib) cell "layout")
-   list(
-      (w "float" cdf->w->defValue)
-      (l "float" cdf->l->defValue)
-      (layer "string" cdf->layer->defValue)
-      (spacingM1 "float" techGetSpacingRule(tf "minSpacing" "MET1"))
-   ) ;list
-   let( (cv)
-      cv=pcCellView
-      CCScreatePcell4(cv w l layer)
-   ) ;let
-) ;pcDefinePCell
-
-lib=nil
-cell=nil
-cdf=nil
-tf=nil
-```
 
 # CDF Callback Procedure
-## lab5_constructor.il
+## lab4_constructor.il
 ```
-procedure( CCScreatePcell5(cv w l layer)
+procedure( createPcell(cv w l layer)
    let( ()
       dbCreateRect(cv list(layer "drawing") list(0:0 w:l))
    ) ;let
@@ -340,7 +312,7 @@ procedure( CCScreatePcell5(cv w l layer)
 
 ## lab5_callback.il
 ```
-procedure( CCScheckParamValue5(param)
+procedure( checkParamValue(param)
    let( (paramError value)
       paramError=nil
       value=cdfFindParamByName(cdfgData symbolToString(param))->value
@@ -385,11 +357,11 @@ procedure( CCScheckParamValue5(param)
 - ```cdfFindParamByName(g_cdfDataId t_name)```: Returns the parameter ID for the specified parameter name on the specified CDF description, if it exists. If not, it returns nil.  
 - ```symbolToString(s_symbolName)```: It converts a symbol to a string of the same name.  
 
-## lab5_cdf.il
+## lab4_cdf.il
 ```
 let( ( lib cell view libId cellId cdfId )
-   lib="TestSkill"
-   cell="pcell5"
+   lib="pcell"
+   cell="lab4"
    view="layout"
 
    unless( ddGetObj(lib cell view)
@@ -403,8 +375,8 @@ let( ( lib cell view libId cellId cdfId )
    cdfCreateParam( cdfId
        ?name           "layer"
        ?prompt         "layer"
-       ?defValue       "MET1"
-       ?choices        '("MET1" "MET2" "MET3")
+       ?defValue       "M1"
+       ?choices        '("M1" "M2" "M3")
        ?type           "cyclic"
    ) ;cdfCreateParam
 
@@ -413,7 +385,7 @@ let( ( lib cell view libId cellId cdfId )
        ?prompt         "l"
        ?defValue       0.1
        ?type           "float"
-       ?callback       "CCScheckParamValue5('l)"
+       ?callback       "checkParamValue('l)"
    ) ;cdfCreateParam
 
    cdfCreateParam( cdfId
@@ -421,7 +393,7 @@ let( ( lib cell view libId cellId cdfId )
        ?prompt         "w"
        ?defValue       0.2
        ?type           "float"
-       ?callback       "CCScheckParamValue5('w)"
+       ?callback       "checkParamValue('w)"
    ) ;cdfCreateParam
 
     cdfSaveCDF( cdfId )
@@ -430,8 +402,8 @@ let( ( lib cell view libId cellId cdfId )
 
 ## lab5.il
 ```
-lib="TestSkill"
-cell="pcell5"
+lib="pcell"
+cell="lab4"
 cdf=cdfGetBaseCellCDF(ddGetObj(lib cell))
 
 pcDefinePCell( 
@@ -443,7 +415,7 @@ pcDefinePCell(
    ) ;list
    let( (cv)
       cv=pcCellView
-      CCScreatePcell5(cv w l layer)
+      createPcell(cv w l layer)
    ) ;let
 ) ;pcDefinePCell
 
