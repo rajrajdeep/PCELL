@@ -151,7 +151,7 @@ This completes the creation of the basic PCell.
 
 # Adding Parameters to a PCell
 
-Additional parameters can be easily added to the basic PCell by modifying the parameter line in the previous code. In the earlier SKILL code example (lab1.il), the rectangle uses a fixed layer (“MET1” “drawing”).
+Additional parameters can be easily added to the basic PCell by modifying the parameter line in the previous code. In the earlier SKILL code example (lab1.il), the rectangle uses a fixed layer (“M1” “drawing”).
 In the following SKILL codes, the layer of the rectangle has been parameterized so that it can be modified in the Properties form.
 
 ## lab2.il
