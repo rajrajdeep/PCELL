@@ -1058,200 +1058,275 @@ Below is the modification in NMOS, instead of one contact we are trying array of
 
 # Modifications in a NMOS pcell
 
-Here we are trying to create a standard xfab NMOS with array of diffusion contacts and align them one by one. Except lab6 constructor function all the SKILL files are same.
+Here we are trying to create a standard xfab NMOS with array of diffusion contacts and align them one by one.
+We can use different-defferent methods to create array of contacts, Out of which two methods I have mentioned below
+	(1). By using rodCreatePath and subRect
+	(2). By using for loop
 
-## lab7_constructor.il
+
+## (1). By using rodCreatePath and subRect
+## nmos_constructor.il
 ```
-procedure( CCScreatePcell7(cv w l)
-   let( (drainRod sourceRod bodyRod gateRod drainMetRod sourceMetRod)
-      drainRod=rodCreateRect(
-         ?cvId cv
-         ?layer "DIFF"
-         ?bBox list(0:0 0.48:w)
-         ?netName "D"
-         ?termName "D"
-         ?termIOType "inputOutput"
-         ?pin t
-      ) ;rodCreateRect
+procedure( nmosSubrect(cv w l)
+	let( (diffu diffu1 diffu2 poly metalSource metalDrain)
+		
+	;;;;;;; OD Layers named as diffu, diffu1 and diffu2 ;;;;;;;
 
-      sourceRod=rodCreateRect(
-         ?cvId cv
-         ?layer "DIFF"
-         ?bBox list(0:0 0.48:w)
-         ?netName "S"
-         ?termName "S"
-         ?termIOType "inputOutput"
-         ?pin t
-      ) ;rodCreateRect
+		diffu = rodCreateRect(
+			?name "diff"
+			?cvId cv
+			?layer "OD"
+			?bBox list(0:0 l:w)
+		);diffu
 
-      bodyRod=rodCreateRect(
-         ?cvId cv
-         ?layer "DIFF"
-         ?bBox list(0:0 l:w)
-      ) ;rodCreateRect
+	;;;;;;;  Here diffu1 = source_OD and diffu2 = drain_OD ;;;;;;;
 
-      gateRod=rodCreateRect(
-         ?cvId cv
-         ?layer "POLY1"
-         ?bBox list(0:0 l:2.44)
-      ) ;rodCreateRect
+		diffu1 = rodCreateRect(
+			?name "diff1"
+			?cvId cv
+			?layer "OD"
+			?bBox list(0:0 0.11:w)
+		);diffu1
 
-arrayOfDiffCon0  = rodCreateRect( ?cvId cv
-				  ?name "arrayOfDiffCon0" 
-				  ?layer "CONT" 
-				  ?width 0.22
-				  ?length 0.22
-            			  ?elementsX 1 
-                                  ?elementsY 4 
-				  ?spaceY 0.225 )
+		diffu2 = rodCreateRect(
+			?name "diff2"
+			?cvId cv
+			?layer "OD"
+			?bBox list(0:0 0.11:w)
+		);diffu2
 
-arrayOfDiffCon1  = rodCreateRect( ?cvId cv
-				  ?name "arrayOfDiffCon1" 
-				  ?layer "CONT" 
-				  ?width 0.22
-				  ?length 0.22
-            			  ?elementsX 1 
-                                  ?elementsY 4 
-				  ?spaceY 0.225 )
+	;;;;;;; POLY layer ;;;;;;;
 
-      nimpRod=rodCreateRect(
-         ?cvId cv
-         ?layer "NIMP"
-         ?bBox list(0:0 (1.48+l):2.7)
-      ) ;rodCreateRect
+		poly = rodCreateRect(
+			?name "poly"
+			?cvId cv
+			?layer "PO"
+			?bBox list(0:0 l-0.09:w+0.18)
+		);poly
 
-      drainMetRod=rodCreateRect(
-         ?cvId cv
-         ?layer "MET1"
-         ?bBox list(0:0 0.34:w*0.96)
-         ?netName "D"
-         ?pin t
-      ) ;rodCreateRect
+	;;;;;;; Aligned the poly and OD ref_obj = diffu and align_obj = poly ;;;;;;;
 
-      sourceMetRod=rodCreateRect(
-         ?cvId cv
-         ?layer "MET1"
-         ?bBox list(0:0 0.34:w*0.96)
-         ?netName "S"
-         ?pin t
-      ) ;rodCreateRect
+		rodAlign(
+			?alignObj diffu
+			?alignHandle "centerCenter"
+			?refObj poly
+			?refHandle "centerCenter"
+		);rodAlign
 
-      rodAlign(
-         ?alignObj drainRod
-         ?alignHandle "lowerRight"
-         ?refObj bodyRod
-         ?refHandle "lowerLeft"
-      ) ;rodAlign
+	;;;;;;; Aligned the diffu and diffu1 ;;;;;;;
 
-      rodAlign(
-         ?alignObj sourceRod
-         ?alignHandle "lowerLeft"
-         ?refObj bodyRod
-         ?refHandle "lowerRight"
-      ) ;rodAlign
+		rodAlign(
+			?alignObj diffu
+			?alignHandle "centerLeft"
+			?refObj diffu1
+			?refHandle "centerRight"
+		);rodAlign
 
-      rodAlign(
-         ?alignObj gateRod
-         ?alignHandle "centerCenter"
-         ?refObj bodyRod
-         ?refHandle "centerCenter"
-      ) ;rodAlign
+	;;;;;;;; Aligned the diffu and diffu2 ;;;;;;;
 
-      rodAlign(
-         ?alignObj nimpRod
-         ?alignHandle "centerCenter"
-         ?refObj gateRod
-         ?refHandle "centerCenter"
-      ) ;rodAlign
+		rodAlign(
+			?alignObj diffu
+			?alignHandle "centerRight"
+			?refObj diffu2
+			?refHandle "centerLeft"
+		);rodAlign
 
-      rodAlign(
-         ?alignObj drainMetRod
-         ?alignHandle "centerCenter"
-         ?refObj drainRod
-         ?refHandle "centerCenter"
-      ) ;rodAlign
+		;;;;;;;;;; Created drainMetal as path and by using subRect, created the contact and justify it to center ;;;;;;;;;;
+		
+		metalSource = rodCreatePath(
+					?name	"sourceMetal"
+					?cvId	cv
+					?layer	"M1"
+					?width	0.05
+					?endType  "variable"
+					?pts	list(0:0 0:w)
+					?subRect
+					list(
+					  list(
+						?layer	"CO"
+						?justification	"center"
+						?space	0.07
+						?beginOffset	-0.03
+						?endOffset	-0.03
+					  )
+					)
+		);metalSource
+		
+		;;;;;;;;;; Created drainMetal as path and by using subRect, created the contact and justify it to center ;;;;;;;;;;
+		
+		metalDrain = rodCreatePath(
+					?name	"drainMetal"
+					?cvId	cv
+					?layer	"M1"
+					?width	0.05
+					?endType  "variable"
+					?pts	list(0:0 0:w)
+					?subRect
+					list(
+					  list(
+						?layer	"CO"
+						?justification	"center"
+						?space	0.07
+						?beginOffset	-0.03
+						?endOffset	-0.03
+					  )
+					)
+		);metalDrain
 
-      rodAlign(
-         ?alignObj sourceMetRod
-         ?alignHandle "centerCenter"
-         ?refObj sourceRod
-         ?refHandle "centerCenter"
-      ) ;rodAlign
+	;;;;;;;; aligned both the source and drain metals with reference to the diffu1(source_od) and diffu2(drain_od) ;;;;;;;
 
-      rodAlign(
-         ?alignObj rodGetObj("arrayOfDiffCon0.1" cv)
-         ?alignHandle "lowerCenter"
-         ?refObj drainMetRod
-         ?refHandle "lowerCenter"
-         ?xSep 0.0
-         ?ySep 0.06
-      ) ;rodAlign
+		rodAlign(
+			?alignObj metalSource
+			?alignHandle "centerCenter"
+			?refObj diffu1
+			?refHandle "centerCenter"
+		);rodAlign
 
-      rodAlign(
-         ?alignObj rodGetObj("arrayOfDiffCon0.2" cv)
-         ?alignHandle "lowerCenter"
-         ?refObj drainMetRod
-         ?refHandle "lowerCenter"
-         ?xSep 0.0
-         ?ySep (0.37+0.22)
-      ) ;rodAlign
+		rodAlign(
+			?alignObj metalDrain
+			?alignHandle "centerCenter"
+			?refObj diffu2
+			?refHandle "centerCenter"
+		);rodAlign
 
-      rodAlign(
-         ?alignObj rodGetObj("arrayOfDiffCon0.3" cv)
-         ?alignHandle "lowerCenter"
-         ?refObj drainMetRod
-         ?refHandle "lowerCenter"
-         ?xSep 0.0
-         ?ySep (0.68+0.22+0.22)
-      ) ;rodAlign
 
-      rodAlign(
-         ?alignObj rodGetObj("arrayOfDiffCon0.4" cv)
-         ?alignHandle "lowerCenter"
-         ?refObj drainMetRod
-         ?refHandle "lowerCenter"
-         ?xSep 0.0
-         ?ySep (0.99+0.22+0.22+0.22)
-      ) ;rodAlign
+		;;;;;;; Created NP and aligned it with reference to the POLY ;;;;;;;
 
-      rodAlign(
-         ?alignObj rodGetObj("arrayOfDiffCon1.1" cv)
-         ?alignHandle "lowerCenter"
-         ?refObj sourceMetRod
-         ?refHandle "lowerCenter"
-         ?xSep 0.0
-         ?ySep 0.06
-      ) ;rodAlign
+		np = rodCreateRect(
+			?name "np"
+			?cvId cv
+			?layer "NP"
+			?bBox list(0:0 l + 0.41:w + 0.33)
+		);np
 
-      rodAlign(
-         ?alignObj rodGetObj("arrayOfDiffCon1.2" cv)
-         ?alignHandle "lowerCenter"
-         ?refObj sourceMetRod
-         ?refHandle "lowerCenter"
-         ?xSep 0.0
-         ?ySep (0.37+0.22)
-      ) ;rodAlign
 
-      rodAlign(
-         ?alignObj rodGetObj("arrayOfDiffCon1.3" cv)
-         ?alignHandle "lowerCenter"
-         ?refObj sourceMetRod
-         ?refHandle "lowerCenter"
-         ?xSep 0.0
-         ?ySep (0.68+0.22+0.22)
-      ) ;rodAlign
+		rodAlign(
+			?alignObj np
+			?alignHandle "centerCenter"
+			?refObj poly
+			?refHandle "centerCenter"
+		);rodAlign
 
-      rodAlign(
-         ?alignObj rodGetObj("arrayOfDiffCon1.4" cv)
-         ?alignHandle "lowerCenter"
-         ?refObj sourceMetRod
-         ?refHandle "lowerCenter"
-         ?xSep 0.0
-         ?ySep (0.99+0.22+0.22+0.22)
-      ) ;rodAlign
+		;;;;;;; Created OD_18 and aligned it with reference to the POLY ;;;;;;;
 
+		od18 = rodCreateRect(
+			?name "OD_18"
+			?cvId cv
+			?layer "OD_18"
+			?bBox list(0:0 l + 0.58:w + 0.36)
+		);od18
+
+
+		rodAlign(
+			?alignObj od18
+			?alignHandle "centerCenter"
+			?refObj poly
+			?refHandle "centerCenter"
+		);rodAlign
+	);let
+);procedure
+
+```
+## nmos_callback.il
+```
+procedure( checkNmosPaVal(param)
+   let( (paramError value)
+      paramError=nil
+      value=cdfFindParamByName(cdfgData symbolToString(param))->value
+      case( param
+         (w
+            cond(
+               (value<0.2
+                  paramError=t
+                  value=0.2
+               ) ;0.2
+                (value>2.0
+                  paramError=t
+                  value=2.0
+               ) ;2.0
+            ) ;cond
+         ) ;w
+         (l
+            cond(
+               (value<0.18
+                  paramError=t
+                  value=0.18
+               ) ;0.18
+                (value>0.5
+                  paramError=t
+                  value=0.5
+               ) ;0.5
+            ) ;cond
+         ) ;l
+      ) ;case
+            
+      cdfFindParamByName(cdfgData symbolToString(param))->value=value
+      when(paramError
+         case( param
+            (w error("Value of w must be within the range [0.2u,2.0u]"))
+            (l error("Value of l must be within the range [0.18u,0.5u]"))
+         ) ;case
+      ) ;when
    ) ;let
 ) ;procedure
+
+```
+## nmos_cdf.il
+```
+let( ( lib cell view libId cellId cdfId )
+   lib="pcell"
+   cell="arrOfCon1"
+   view="layout"
+
+   unless( ddGetObj(lib cell view)
+      dbOpenCellViewByType(lib cell view "maskLayout" "w")
+   ) ;unless
+
+   unless( cellId=ddGetObj(lib cell) error("Could not get cell %s." cell))
+   when( cdfId=cdfGetBaseCellCDF(cellId) cdfDeleteCDF(cdfId))
+   cdfId=cdfCreateBaseCellCDF(cellId)
+
+   cdfCreateParam( cdfId
+       ?name           "l"
+       ?prompt         "l"
+       ?defValue       0.24
+       ?type           "float"
+       ?callback       "checkNmosPaVal('l)"
+   ) ;cdfCreateParam
+
+   cdfCreateParam( cdfId
+       ?name           "w"
+       ?prompt         "w"
+       ?defValue       0.32
+       ?type           "float"
+       ?callback       "checkNmosPaVal('w)"
+   ) ;cdfCreateParam
+
+    cdfSaveCDF( cdfId )
+) ;let
+
+```
+## nmos.il
+```
+lib="pcell"
+cell="arrOfCon1"
+cdf=cdfGetBaseCellCDF(ddGetObj(lib cell))
+
+pcDefinePCell(
+   list(ddGetObj(lib) cell "layout")
+   list(
+      (w "float" cdf->w->defValue)
+      (l "float" cdf->l->defValue)
+   ) ;list
+   let( (cv)
+      cv=pcCellView
+      nmosSubrect(cv w l)
+   ) ;let
+) ;pcDefinePCell
+
+lib=nil
+cell=nil
+cdf=nil
 
 ```
 Load the files in CIW in the following order:  
