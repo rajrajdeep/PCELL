@@ -310,7 +310,7 @@ procedure( createPcell(cv w l layer)
 ) ;procedure
 ```
 
-## lab5_callback.il
+## lab4_callback.il
 ```
 procedure( checkParamValue(param)
    let( (paramError value)
@@ -400,7 +400,7 @@ let( ( lib cell view libId cellId cdfId )
 ) ;let
 ```
 
-## lab5.il
+## lab4.il
 ```
 lib="pcell"
 cell="lab4"
@@ -430,7 +430,7 @@ load("./callback.il")
 load("./cdf.il")
 load("./pcell.il")
 ```
-Next, create or open the layout cell "lab5" and place an instance of pcell5 to test it. callback procedure is called whenever user places an instance of pcell5 and trys to change the w, l value of the cell. The callback procedure sets the minimum and maximum value of the w and l parameters. In this case value of w is in between 0.2 to 2, whereas l can be in between 0.1 to 1. Change w, l parameter and check the whether w and l values are in between the desired range.
+Next, create or open the layout cell "lab4" and place an instance of pcell4 to test it. callback procedure is called whenever user places an instance of pcell4 and trys to change the w, l value of the cell. The callback procedure sets the minimum and maximum value of the w and l parameters. In this case value of w is in between 0.2 to 2, whereas l can be in between 0.1 to 1. Change w, l parameter and check the whether w and l values are in between the desired range.
 
 # Creating Layout Objects Using ROD
 
@@ -680,9 +680,9 @@ We can create a ROD rectangle by typing below mentioned commands in the Command 
 rect = rodCreateRect(
 ?name "rect"
 ?cvId geGetEditCellView()
-?layer "POLY1"
+?layer "PO"
 ?bBox list(3:11 9:9)
-)
+);rodCreateRect
 ```
 
 <img title="Rectangle" src="images/rectangle.png" width="500" length="500"> 
@@ -694,9 +694,9 @@ A ROD Polygon can be created by typing below mentioned commands in the Command I
 polygon = rodCreatePolygon(
 ?name "polygon"
 ?cvId geGetEditCellView()
-?layer "MET1"
+?layer "M1"
 ?pts list(11:11 11:7 17:7 17:9 13:9 13:11)
-)
+);rodCreatePolygon
 ```
 
 <img title="Polygon" src="images/polygon.png" width="500" length="500"> 
@@ -714,7 +714,7 @@ To create a user-defined handle,
    ?type "point"
    ?value 12:10
    ?rodObj polygon
-   )
+   );rodCreateHandle
    ```
    
 2. Note the change in the User handle field. We may have to deselect and then reselect the polygon to refresh the form. The value should reflect what we set to create the user handle.
@@ -736,13 +736,13 @@ rodAlign(
 
 
 # creating a mosfet pcell
-## lab6_constrctor.il
+## lab5_constrctor.il
 ```
-procedure( CCScreatePcell6(cv w l)
+procedure( createPcell(cv w l)
    let( (drainRod sourceRod bodyRod gateRod drainMetRod sourceMetRod)
       drainRod=rodCreateRect(
          ?cvId cv
-         ?layer "DIFF"
+         ?layer "OD"
          ?bBox list(0:0 l:w)
          ?netName "D"
          ?termName "D"
